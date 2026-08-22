@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B1F33"><title>VVKBD Productivity</title>
+<style>
+:root{--n:#0B1F33;--g:#C9A227;--bg:#F4F6F8;--c:#fff;--t:#14222d;--m:#6c7885;--l:#e1e6eb;--r:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font-family:system-ui,-apple-system,Segoe UI,sans-serif}header{background:linear-gradient(145deg,#071827,#143653);color:#fff;padding:20px 16px 17px;border-bottom:4px solid var(--g);position:sticky;top:0;z-index:5}.brand{font-weight:900;letter-spacing:.5px}.tag{font-size:11px;opacity:.75}.wrap{max-width:780px;margin:auto;padding:14px 14px 90px}.view{display:none}.view.active{display:block}.card{background:var(--c);border:1px solid var(--l);border-radius:16px;padding:15px;margin-bottom:12px;box-shadow:0 4px 18px #0000000a}h2{font-size:18px;margin:0 0 12px}h3{font-size:14px;margin:0 0 7px}.muted{font-size:12px;color:var(--m)}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.grid4{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.stat{background:#f7f8fa;border-radius:12px;padding:12px}.num{font-size:25px;font-weight:900;color:var(--n)}.label{font-size:11px;color:var(--m)}input,select,textarea{width:100%;padding:10px;border:1px solid var(--l);border-radius:9px;background:#fff;font:inherit;margin-bottom:8px}textarea{min-height:70px;resize:vertical}.row{display:flex;gap:7px}.row>*{flex:1}button{border:0;border-radius:9px;padding:10px 12px;font-weight:800;font:inherit}.primary{background:var(--n);color:#fff}.gold{background:var(--g);color:#111}.light{background:#edf1f4;color:var(--n)}.danger{background:#fdecec;color:var(--r)}.item{padding:12px 0;border-bottom:1px solid var(--l)}.item:last-child{border:0}.itemtop{display:flex;align-items:center;gap:9px}.itemtop input{width:auto;margin:0}.done{text-decoration:line-through;color:var(--m)}.badge{margin-left:auto;font-size:10px;padding:4px 7px;border-radius:99px;background:#eef2f5}.high{background:#fdecec;color:var(--r)}.medium{background:#fff5d6;color:#755900}.low{background:#e8f7ef;color:#167044}.chip{display:inline-block;background:#eef2f5;border-radius:99px;padding:4px 7px;font-size:10px;margin:2px}.timeline{border-left:3px solid var(--g);padding-left:12px}.timeblock{padding:9px 0}.time{font-weight:900;color:var(--n)}.empty{font-size:12px;color:var(--m);padding:10px 0}.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--l);display:flex;justify-content:space-around;padding:6px 2px calc(6px + env(safe-area-inset-bottom));z-index:10}.nav button{background:none;color:var(--m);font-size:10px;padding:6px}.nav button.active{color:var(--n)}.modal{position:fixed;inset:0;background:#0008;display:none;align-items:flex-end;z-index:20}.modal.show{display:flex}.sheet{background:#fff;width:100%;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:17px}.sheethead{display:flex;justify-content:space-between;align-items:center}
+</style></head>
+<body>
+<header><div class="brand">VVKBD PRODUCTIVITY</div><div class="tag">Insurance Simplified. • Work smarter. Live better.</div></header>
+<main class="wrap">
+<section id="home" class="view active">
+<div class="card"><h2 id="todayTitle"></h2><div class="grid"><div class="stat"><div class="num" id="openCount">0</div><div class="label">Open tasks</div></div><div class="stat"><div class="num" id="todayCount">0</div><div class="label">Due today</div></div></div></div>
+<div class="card"><h2>Today's timeline</h2><div id="timeline" class="timeline"></div></div>
+<div class="card"><h2>Upcoming reminders</h2><div id="reminders"></div></div>
+</section>
+
+<section id="tasks" class="view">
+<div class="card"><h2>Tasks</h2><button class="primary" onclick="openTask()">+ Add task</button></div><div class="card"><div id="taskList"></div></div>
+</section>
+
+<section id="goals" class="view">
+<div class="card"><h2>Goals</h2><button class="gold" onclick="openGoal()">+ Add goal</button></div><div class="card"><div id="goalList"></div></div>
+</section>
+
+<section id="calendar" class="view">
+<div class="card"><h2>Calendar / Timeline</h2><input id="calDate" type="date" onchange="render()"><div id="calList" class="timeline"></div></div>
+</section>
+
+<section id="sales" class="view">
+<div class="card"><h2>Sales Tracker</h2><div class="grid4"><input id="leads" type="number" placeholder="Leads"><input id="calls" type="number" placeholder="Calls"><input id="quotes" type="number" placeholder="Quotes"><input id="sold" type="number" placeholder="Sales"></div><button class="primary" onclick="saveSales()">Save</button></div>
+<div class="card"><h2>Conversion</h2><div class="num" id="conv">0%</div></div>
+</section>
+
+<section id="more" class="view"><div class="card"><h2>Settings</h2><p class="muted">Tasks and goals are stored locally on this device in this free build.</p><button class="danger" onclick="resetAll()">Reset all data</button></div></section>
+</main>
+
+<nav class="nav">
+<button id="n-home" class="active" onclick="show('home')">🏠<br>Home</button><button id="n-tasks" onclick="show('tasks')">✓<br>Tasks</button><button id="n-goals" onclick="show('goals')">🎯<br>Goals</button><button id="n-calendar" onclick="show('calendar')">📅<br>Calendar</button><button id="n-sales" onclick="show('sales')">📈<br>Sales</button><button id="n-more" onclick="show('more')">⚙<br>More</button>
+</nav>
+
+<div id="modal" class="modal"><div class="sheet"><div class="sheethead"><h2 id="modalTitle"></h2><button class="light" onclick="closeModal()">Close</button></div><div id="form"></div></div></div>
+
+<script>
+const KEY='vvkbd_v2';let d=JSON.parse(localStorage.getItem(KEY)||'{"tasks":[],"goals":[],"sales":{"leads":0,"calls":0,"quotes":0,"sold":0}}');let editId=null,editType=null;
+const today=()=>new Date().toISOString().slice(0,10);
+function save(){localStorage.setItem(KEY,JSON.stringify(d));render()}
+function show(id){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));document.getElementById('n-'+id).classList.add('active');render()}
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function fmt(dt){if(!dt)return '—';let x=new Date(dt);return x.toLocaleString([], {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}
+function openTask(id=null){editType='task';editId=id;let x=id?d.tasks.find(a=>a.id===id):{title:'',start:today()+'T09:00',end:today()+'T10:00',reminder:'none',priority:'Medium',repeat:'None',notes:''};modalTitle.textContent=id?'Edit task':'New task';form.innerHTML=`
+<input id="fTitle" placeholder="Task name" value="${esc(x.title)}">
+<div class="row"><div><label class="muted">Start</label><input id="fStart" type="datetime-local" value="${x.start||''}"></div><div><label class="muted">End</label><input id="fEnd" type="datetime-local" value="${x.end||''}"></div></div>
+<div class="row"><div><label class="muted">Reminder</label><select id="fReminder"><option value="none">None</option><option value="5">5 min before</option><option value="15">15 min before</option><option value="30">30 min before</option><option value="60">1 hour before</option><option value="1440">1 day before</option></select></div><div><label class="muted">Priority</label><select id="fPriority"><option>High</option><option>Medium</option><option>Low</option></select></div></div>
+<div><label class="muted">Repeat</label><select id="fRepeat"><option>None</option><option>Daily</option><option>Weekly</option><option>Monthly</option></select></div>
+<textarea id="fNotes" placeholder="Notes">${esc(x.notes)}</textarea><button class="primary" onclick="saveTask()">Save task</button>`;
+fReminder.value=x.reminder||'none';fPriority.value=x.priority||'Medium';fRepeat.value=x.repeat||'None';modal.classList.add('show')}
+function saveTask(){let title=fTitle.value.trim();if(!title)return alert('Enter a task name.');let obj={id:editId||crypto.randomUUID(),title,start:fStart.value,end:fEnd.value,reminder:fReminder.value,priority:fPriority.value,repeat:fRepeat.value,notes:fNotes.value,done:editId?d.tasks.find(a=>a.id===editId).done:false};if(editId)d.tasks=d.tasks.map(a=>a.id===editId?obj:a);else d.tasks.push(obj);closeModal();save()}
+function toggleTask(id){let x=d.tasks.find(a=>a.id===id);x.done=!x.done;save()}
+function deleteTask(id){d.tasks=d.tasks.filter(a=>a.id!==id);save()}
+function openGoal(id=null){editType='goal';editId=id;let x=id?d.goals.find(a=>a.id===id):{title:'',start:today(),target:today(),progress:0,reminder:'none',notes:''};modalTitle.textContent=id?'Edit goal':'New goal';form.innerHTML=`
+<input id="gTitle" placeholder="Goal name" value="${esc(x.title)}"><div class="row"><div><label class="muted">Start date</label><input id="gStart" type="date" value="${x.start}"></div><div><label class="muted">Target date</label><input id="gTarget" type="date" value="${x.target}"></div></div>
+<div><label class="muted">Progress %</label><input id="gProgress" type="number" min="0" max="100" value="${x.progress||0}"></div>
+<div><label class="muted">Reminder</label><select id="gReminder"><option value="none">None</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="target">On target date</option></select></div>
+<textarea id="gNotes" placeholder="Notes">${esc(x.notes)}</textarea><button class="gold" onclick="saveGoal()">Save goal</button>`;gReminder.value=x.reminder||'none';modal.classList.add('show')}
+function saveGoal(){let title=gTitle.value.trim();if(!title)return alert('Enter a goal name.');let old=editId?d.goals.find(a=>a.id===editId):null;let obj={id:editId||crypto.randomUUID(),title,start:gStart.value,target:gTarget.value,progress:+gProgress.value||0,reminder:gReminder.value,notes:gNotes.value,done:old?old.done:false};if(editId)d.goals=d.goals.map(a=>a.id===editId?obj:a);else d.goals.push(obj);closeModal();save()}
+function toggleGoal(id){let x=d.goals.find(a=>a.id===id);x.done=!x.done;x.progress=x.done?100:x.progress;save()}
+function deleteGoal(id){d.goals=d.goals.filter(a=>a.id!==id);save()}
+function closeModal(){modal.classList.remove('show')}
+function saveSales(){d.sales={leads:+leads.value||0,calls:+calls.value||0,quotes:+quotes.value||0,sold:+sold.value||0};save()}
+function resetAll(){if(confirm('Reset all VVKBD data?')){localStorage.removeItem(KEY);location.reload()}}
+function taskHtml(x){return `<div class="item"><div class="itemtop"><input type="checkbox" ${x.done?'checked':''} onchange="toggleTask('${x.id}')"><div class="${x.done?'done':''}" style="flex:1"><b>${esc(x.title)}</b><div class="muted">${fmt(x.start)} → ${fmt(x.end)}</div>${x.reminder!='none'?`<span class="chip">🔔 ${x.reminder} min</span>`:''}${x.repeat!='None'?`<span class="chip">↻ ${x.repeat}</span>`:''}</div><span class="badge ${x.priority.toLowerCase()}">${x.priority}</span></div><div style="margin-top:7px"><button class="light" onclick="openTask('${x.id}')">Edit</button> <button class="danger" onclick="deleteTask('${x.id}')">Delete</button></div></div>`}
+function render(){
+let now=today();todayTitle.textContent=new Date().toLocaleDateString([], {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+let open=d.tasks.filter(x=>!x.done),due=d.tasks.filter(x=>!x.done&&x.start?.slice(0,10)===now);openCount.textContent=open.length;todayCount.textContent=due.length;
+let sorted=d.tasks.filter(x=>x.start?.slice(0,10)===now).sort((a,b)=>(a.start||'').localeCompare(b.start||''));timeline.innerHTML=sorted.length?sorted.map(x=>`<div class="timeblock"><div class="time">${new Date(x.start).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} – ${x.end?new Date(x.end).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):''}</div>${esc(x.title)} <span class="badge ${x.priority.toLowerCase()}">${x.priority}</span></div>`).join(''):'<div class="empty">No scheduled tasks today.</div>';
+let rem=d.tasks.filter(x=>!x.done&&x.reminder!='none').sort((a,b)=>(a.start||'').localeCompare(b.start||'')).slice(0,8);reminders.innerHTML=rem.length?rem.map(x=>`<div class="item">🔔 <b>${esc(x.title)}</b><div class="muted">${fmt(x.start)} • reminder ${x.reminder} min before</div></div>`).join(''):'<div class="empty">No reminders set.</div>';
+taskList.innerHTML=d.tasks.length?d.tasks.slice().sort((a,b)=>(a.done-b.done)||(a.start||'').localeCompare(b.start||'')).map(taskHtml).join(''):'<div class="empty">No tasks yet.</div>';
+goalList.innerHTML=d.goals.length?d.goals.map(x=>`<div class="item"><div class="itemtop"><input type="checkbox" ${x.done?'checked':''} onchange="toggleGoal('${x.id}')"><div style="flex:1" class="${x.done?'done':''}"><b>${esc(x.title)}</b><div class="muted">${x.start||'—'} → ${x.target||'—'} • ${x.progress}%</div></div></div><div style="margin-top:7px"><button class="light" onclick="openGoal('${x.id}')">Edit</button> <button class="danger" onclick="deleteGoal('${x.id}')">Delete</button></div></div>`).join(''):'<div class="empty">No goals yet.</div>';
+let cd=calDate.value||now;calDate.value=cd;let ct=d.tasks.filter(x=>x.start?.slice(0,10)===cd).sort((a,b)=>(a.start||'').localeCompare(b.start||''));calList.innerHTML=ct.length?ct.map(x=>`<div class="timeblock"><div class="time">${new Date(x.start).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} – ${x.end?new Date(x.end).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):''}</div>${esc(x.title)} <span class="badge ${x.priority.toLowerCase()}">${x.priority}</span></div>`).join(''):'<div class="empty">Nothing scheduled.</div>';
+leads.value=d.sales.leads;calls.value=d.sales.calls;quotes.value=d.sales.quotes;sold.value=d.sales.sold;conv.textContent=(d.sales.leads?Math.round(d.sales.sold/d.sales.leads*100):0)+'%';
+}
+calDate.value=today();render();
+</script></body></html>

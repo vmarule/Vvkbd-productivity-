@@ -1,0 +1,9 @@
+{
+  "name": "VVKBD Productivity",
+  "short_name": "VVKBD",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F4F6F8",
+  "theme_color": "#0B1F33",
+  "description": "VVKBD branded executive productivity app"
+}
