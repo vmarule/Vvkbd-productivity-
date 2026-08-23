@@ -29,18 +29,33 @@ function materialisePrayer(d,master){
 }
 function installEditableTarget(){
  const salesInput=document.getElementById('salesTarget');
- if(!salesInput||document.getElementById('editableTargetHint'))return;
- salesInput.value=2500;
- salesInput.removeAttribute('readonly');
+ if(!salesInput)return;
+ salesInput.readOnly=false;
  salesInput.disabled=false;
- salesInput.min='1';
- salesInput.placeholder='2500';
- const hint=document.createElement('div');
- hint.id='editableTargetHint';
- hint.className='muted';
- hint.style.margin='-3px 0 10px';
- hint.textContent='You can change this target anytime. Enter the amount in rand and tap Save sales numbers.';
- salesInput.insertAdjacentElement('afterend',hint);
+ salesInput.removeAttribute('readonly');
+ salesInput.style.pointerEvents='auto';
+ salesInput.style.userSelect='text';
+ if(!document.getElementById('editableTargetHint')){
+   const hint=document.createElement('div');
+   hint.id='editableTargetHint';
+   hint.className='muted';
+   hint.style.margin='-3px 0 10px';
+   hint.textContent='Editable: enter your daily target in rand, then tap Save sales numbers.';
+   salesInput.insertAdjacentElement('afterend',hint);
+ }
+}
+function protectEditableSalesInput(){
+ if(typeof window.render!=='function'||window.__vvkbdRenderFixed)return;
+ const originalRender=window.render;
+ window.render=function(){
+   const input=document.getElementById('salesTarget');
+   const focused=input&&document.activeElement===input;
+   const typed=focused?input.value:null;
+   originalRender();
+   if(focused&&input){input.value=typed;input.focus();}
+   installEditableTarget();
+ };
+ window.__vvkbdRenderFixed=true;
 }
 function materialise(){
  const d=load();let changed=false,anchor=previousWeekday(),anchorKey=dateKey(anchor);
@@ -67,8 +82,9 @@ function materialise(){
    }
  }
  if(changed)save(d);
- setTimeout(installEditableTarget,100);
+ setTimeout(function(){installEditableTarget();protectEditableSalesInput()},100);
 }
 materialise();
 setInterval(materialise,60000);
+setTimeout(function(){installEditableTarget();protectEditableSalesInput()},300);
 })();
