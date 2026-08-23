@@ -12,16 +12,13 @@ function makeDT(day,h,m){return `${dateKey(day)}T${pad(h)}:${pad(m)}`}
 function isPrayer(t){return String(t.title||'').trim().toLowerCase()==='prayer'}
 function materialisePrayer(d,master){
  const sh={h:19,m:0},eh={h:20,m:0};
- // Remove previously generated Prayer dates after 31 August so nothing appears indefinitely.
  d.tasks=d.tasks.filter(t=>!(t.masterId===master.id&&isPrayer(t)&&dateKey(new Date(t.start))>PRAYER_CUTOFF));
  let changed=false;
- // Daily Prayer through 31 August 2026.
  for(let day=new Date();dateKey(day)<=PRAYER_CUTOFF;day=addDays(day,1)){
    const k=dateKey(day),id=master.id+'::daily::'+k;
    if(k===dateKey(new Date(master.start))||d.tasks.some(t=>t.id===id))continue;
    d.tasks.push({id,masterId:master.id,title:'Prayer',start:makeDT(day,sh.h,sh.m),end:makeDT(day,eh.h,eh.m),reminder:master.reminder||'30',priority:master.priority||'Medium',repeat:'None',notes:'Prayer — daily through 31 August 2026',done:false,generated:true});changed=true;
  }
- // From 1 September onward, Prayer is only Wednesdays at 19:00. First one is 2 September 2026.
  for(let day=new Date(PRAYER_WEEKLY_START+'T12:00');day<addDays(new Date(),90);day=addDays(day,7)){
    const k=dateKey(day),id=master.id+'::weekly::'+k;
    if(d.tasks.some(t=>t.id===id))continue;
@@ -32,6 +29,8 @@ function materialisePrayer(d,master){
 }
 function materialise(){
  const d=load();let changed=false,anchor=previousWeekday(),anchorKey=dateKey(anchor);
+ d.sales=d.sales||{leads:0,calls:0,quotes:0,sold:0,target:2500};
+ if(!d.sales.target||+d.sales.target===5000){d.sales.target=2500;changed=true}
  const prayerMasters=d.tasks.filter(t=>isPrayer(t)&&!t.masterId);
  for(const master of prayerMasters){if(materialisePrayer(d,master))changed=true}
  let sales=d.tasks.find(t=>String(t.title||'').trim().toLowerCase()==='sales'&&!t.masterId);
