@@ -27,21 +27,35 @@ function materialisePrayer(d,master){
  master.notes='Prayer: daily through 31 August 2026; Wednesdays at 19:00 from 2 September 2026.';
  return changed;
 }
+function setSalesTarget(){
+ const d=load();
+ d.sales=d.sales||{leads:0,calls:0,quotes:0,sold:0,target:2500};
+ const current=+d.sales.target||2500;
+ const answer=window.prompt('Daily sales target in rand:',String(current));
+ if(answer===null)return;
+ const value=Number(String(answer).replace(/[^0-9.]/g,''));
+ if(!Number.isFinite(value)||value<1){window.alert('Please enter a valid target, for example 2500.');return;}
+ d.sales.target=Math.round(value*100)/100;
+ save(d);
+ const input=document.getElementById('salesTarget');
+ if(input)input.value=d.sales.target;
+ if(typeof window.render==='function')window.render();
+}
+window.vvkbdEditSalesTarget=setSalesTarget;
 function installEditableTarget(){
  const salesInput=document.getElementById('salesTarget');
  if(!salesInput)return;
- salesInput.readOnly=false;
- salesInput.disabled=false;
- salesInput.removeAttribute('readonly');
- salesInput.style.pointerEvents='auto';
- salesInput.style.userSelect='text';
+ salesInput.readOnly=false;salesInput.disabled=false;salesInput.removeAttribute('readonly');salesInput.style.pointerEvents='auto';salesInput.style.userSelect='text';salesInput.placeholder='2500';
+ if(!document.getElementById('editSalesTargetBtn')){
+   const btn=document.createElement('button');
+   btn.id='editSalesTargetBtn';btn.type='button';btn.className='gold';btn.style.width='100%';btn.style.margin='2px 0 8px';btn.textContent='✎ Edit daily target';btn.onclick=setSalesTarget;
+   salesInput.insertAdjacentElement('afterend',btn);
+ }
  if(!document.getElementById('editableTargetHint')){
-   const hint=document.createElement('div');
-   hint.id='editableTargetHint';
-   hint.className='muted';
-   hint.style.margin='-3px 0 10px';
-   hint.textContent='Editable: enter your daily target in rand, then tap Save sales numbers.';
-   salesInput.insertAdjacentElement('afterend',hint);
+   const hint=document.createElement('div');hint.id='editableTargetHint';hint.className='muted';hint.style.margin='0 0 10px';hint.textContent='Current target: R'+Number((load().sales&&load().sales.target)||2500).toLocaleString()+'. Tap Edit daily target to change it.';
+   document.getElementById('editSalesTargetBtn').insertAdjacentElement('afterend',hint);
+ }else{
+   document.getElementById('editableTargetHint').textContent='Current target: R'+Number((load().sales&&load().sales.target)||2500).toLocaleString()+'. Tap Edit daily target to change it.';
  }
 }
 function protectEditableSalesInput(){
