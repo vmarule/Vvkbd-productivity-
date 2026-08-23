@@ -1,0 +1,15 @@
+{
+  "name": "VVKBD Productivity",
+  "short_name": "VVKBD",
+  "description": "VVKBD Productivity dashboard",
+  "start_url": "./?source=homescreen",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#071a32",
+  "background_color": "#071a32",
+  "icons": [
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"},
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"maskable"}
+  ]
+}
