@@ -5,6 +5,7 @@ on:
     paths:
       - recurring.js
       - .github/workflows/install-recurring.yml
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:
