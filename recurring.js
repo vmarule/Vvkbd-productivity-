@@ -27,6 +27,21 @@ function materialisePrayer(d,master){
  master.notes='Prayer: daily through 31 August 2026; Wednesdays at 19:00 from 2 September 2026.';
  return changed;
 }
+function installEditableTarget(){
+ const salesInput=document.getElementById('salesTarget');
+ if(!salesInput||document.getElementById('editableTargetHint'))return;
+ salesInput.value=2500;
+ salesInput.removeAttribute('readonly');
+ salesInput.disabled=false;
+ salesInput.min='1';
+ salesInput.placeholder='2500';
+ const hint=document.createElement('div');
+ hint.id='editableTargetHint';
+ hint.className='muted';
+ hint.style.margin='-3px 0 10px';
+ hint.textContent='You can change this target anytime. Enter the amount in rand and tap Save sales numbers.';
+ salesInput.insertAdjacentElement('afterend',hint);
+}
 function materialise(){
  const d=load();let changed=false,anchor=previousWeekday(),anchorKey=dateKey(anchor);
  d.sales=d.sales||{leads:0,calls:0,quotes:0,sold:0,target:2500};
@@ -52,6 +67,8 @@ function materialise(){
    }
  }
  if(changed)save(d);
+ setTimeout(installEditableTarget,100);
 }
-materialise();setInterval(materialise,60000);
+materialise();
+setInterval(materialise,60000);
 })();
