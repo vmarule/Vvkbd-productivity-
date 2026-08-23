@@ -1,52 +1,40 @@
-/* VVKBD Productivity recurring schedule engine
-   Keeps one clean data source in localStorage and materialises weekday occurrences.
-   This intentionally does NOT render the UI or override index.html functions. */
+/* VVKBD Productivity recurring schedule engine */
 (function(){
-  'use strict';
-  const KEY='vvkbd_v2';
-  const pad=n=>String(n).padStart(2,'0');
-  const dateKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  const fromKey=k=>{const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d,12,0,0)};
-  const load=()=>{try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');d.tasks=Array.isArray(d.tasks)?d.tasks:[];d.goals=Array.isArray(d.goals)?d.goals:[];d.sales=d.sales||{leads:0,calls:0,quotes:0,sold:0,target:5};return d}catch(e){return {tasks:[],goals:[],sales:{leads:0,calls:0,quotes:0,sold:0,target:5}}}};
-  const save=d=>localStorage.setItem(KEY,JSON.stringify(d));
-  const localDay=()=>dateKey(new Date());
-  const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
-  const hm=v=>{const m=String(v||'').match(/T(\d{2}):(\d{2})/);return m?{h:+m[1],m:+m[2]}:{h:9,m:0}};
-  const makeDT=(day, h, m)=>`${dateKey(day)}T${pad(h)}:${pad(m)}`;
-  const materialise=()=>{
-    const d=load();
-    let changed=false;
-
-    // Normalise the two permanent VVKBD weekday activities.
-    let sales=d.tasks.find(t=>String(t.title||'').trim().toLowerCase()==='sales' && t.masterId===undefined);
-    if(!sales){sales={id:'sales-weekdays',title:'Sales',repeat:'Weekdays (Mon–Fri)',priority:'High',reminder:'none',notes:'VVKBD sales activity — Monday to Friday',start:localDay()+'T09:00',end:localDay()+'T17:00',done:false};d.tasks.push(sales);changed=true;}
-    sales.repeat='Weekdays (Mon–Fri)'; sales.start=localDay()+'T09:00'; sales.end=localDay()+'T17:00';
-
-    let gym=d.tasks.find(t=>String(t.title||'').trim().toLowerCase()==='gym' && t.masterId===undefined);
-    if(!gym){gym={id:'gym-weekdays',title:'Gym',repeat:'Weekdays (Mon–Fri)',priority:'Medium',reminder:'15',notes:'Gym — Monday to Friday',start:localDay()+'T06:00',end:localDay()+'T07:00',done:false};d.tasks.push(gym);changed=true;}
-    gym.repeat='Weekdays (Mon–Fri)'; gym.start=localDay()+'T06:00'; gym.end=localDay()+'T07:00'; gym.reminder='15';
-
-    // Generate 90 days ahead. Generated copies are ordinary tasks, so the main app
-    // can display/check them without a second renderer fighting the UI.
-    const masters=d.tasks.filter(t=>t.repeat && t.repeat!=='None' && !t.masterId);
-    for(const master of masters){
-      const sh=hm(master.start), eh=hm(master.end);
-      for(let i=0;i<90;i++){
-        const day=addDays(new Date(),i);
-        if(master.repeat==='Weekdays (Mon–Fri)' && (day.getDay()===0||day.getDay()===6)) continue;
-        if(master.repeat==='Weekly' && day.getDay()!==fromKey(dateKey(new Date(master.start||localDay()))).getDay()) continue;
-        if(master.repeat==='Monthly' && day.getDate()!==fromKey(dateKey(new Date(master.start||localDay()))).getDate()) continue;
-        const k=dateKey(day), id=master.id+'::'+k;
-        if(d.tasks.some(t=>t.id===id)) continue;
-        d.tasks.push({id,masterId:master.id,title:master.title,start:makeDT(day,sh.h,sh.m),end:makeDT(day,eh.h,eh.m),reminder:master.reminder||'none',priority:master.priority||'Medium',repeat:'None',notes:master.notes||'',done:false,generated:true});
-        changed=true;
-      }
-    }
-    if(changed)save(d);
-    // Ask the main page to refresh once, without replacing any of its functions.
-    if(typeof window.render==='function') window.render();
-  };
-  materialise();
-  // Refresh the data at most every minute; the UI clock already handles seconds.
-  setInterval(materialise,60000);
+'use strict';
+const KEY='vvkbd_v2',pad=n=>String(n).padStart(2,'0');
+const dateKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const load=()=>{try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');d.tasks=Array.isArray(d.tasks)?d.tasks:[];d.goals=Array.isArray(d.goals)?d.goals:[];d.sales=d.sales||{leads:0,calls:0,quotes:0,sold:0,target:5};return d}catch(e){return{tasks:[],goals:[],sales:{leads:0,calls:0,quotes:0,sold:0,target:5}}}};
+const save=d=>localStorage.setItem(KEY,JSON.stringify(d));
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const previousWeekday=()=>{let d=new Date();while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()-1);return d};
+const hm=v=>{const m=String(v||'').match(/T(\d{2}):(\d{2})/);return m?{h:+m[1],m:+m[2]}:{h:9,m:0}};
+const makeDT=(day,h,m)=>`${dateKey(day)}T${pad(h)}:${pad(m)}`;
+function materialise(){
+ const d=load();let changed=false,anchor=previousWeekday(),anchorKey=dateKey(anchor);
+ let sales=d.tasks.find(t=>String(t.title||'').trim().toLowerCase()==='sales'&&!t.masterId);
+ if(!sales){sales={id:'sales-weekdays',title:'Sales',repeat:'Weekdays (Mon–Fri)',priority:'High',reminder:'none',notes:'VVKBD sales activity — Monday to Friday',done:false};d.tasks.push(sales);changed=true;}
+ sales.repeat='Weekdays (Mon–Fri)';sales.start=anchorKey+'T09:00';sales.end=anchorKey+'T17:00';
+ let gym=d.tasks.find(t=>String(t.title||'').trim().toLowerCase()==='gym'&&!t.masterId);
+ if(!gym){gym={id:'gym-weekdays',title:'Gym',repeat:'Weekdays (Mon–Fri)',priority:'Medium',reminder:'15',notes:'Gym — Monday to Friday',done:false};d.tasks.push(gym);changed=true;}
+ gym.repeat='Weekdays (Mon–Fri)';gym.start=anchorKey+'T06:00';gym.end=anchorKey+'T07:00';gym.reminder='15';
+ const masters=d.tasks.filter(t=>t.repeat&&t.repeat!=='None'&&!t.masterId);
+ for(const master of masters){
+   const sh=hm(master.start),eh=hm(master.end);
+   for(let i=0;i<90;i++){
+     const day=addDays(new Date(),i);
+     if(master.repeat==='Weekdays (Mon–Fri)'&&(day.getDay()===0||day.getDay()===6))continue;
+     if(master.repeat==='Weekly'){const first=new Date(master.start);if(day.getDay()!==first.getDay())continue;}
+     if(master.repeat==='Monthly'){const first=new Date(master.start);if(day.getDate()!==first.getDate())continue;}
+     const k=dateKey(day),id=master.id+'::'+k;
+     // The master itself represents its original date; generated copies begin after it.
+     if(k===dateKey(new Date(master.start)))continue;
+     if(d.tasks.some(t=>t.id===id))continue;
+     d.tasks.push({id,masterId:master.id,title:master.title,start:makeDT(day,sh.h,sh.m),end:makeDT(day,eh.h,eh.m),reminder:master.reminder||'none',priority:master.priority||'Medium',repeat:'None',notes:master.notes||'',done:false,generated:true});
+     changed=true;
+   }
+ }
+ if(changed)save(d);
+ if(typeof window.render==='function')window.render();
+}
+materialise();setInterval(materialise,60000);
 })();
