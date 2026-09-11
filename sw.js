@@ -1,12 +1,6 @@
-const C='vvkbd-full-v5';
-self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['./','./index.html','./manifest.json'])).then(()=>self.skipWaiting())));
+const C='vvkbd-full-v6';
+self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['./','./index.html','./manifest.json','./sw.js'])).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>{for(const c of list){if('focus' in c)return c.focus()}return clients.openWindow('./index.html')}))});
 self.addEventListener('push',e=>{let data={title:'VVKBD reminder',body:'You have a scheduled reminder.'};try{data=Object.assign(data,e.data?e.data.json():{})}catch(_){}e.waitUntil(self.registration.showNotification(data.title,{body:data.body,tag:data.tag||'vvkbd-reminder',data:data.data||{}}))});
-self.addEventListener('fetch',e=>{
-  if(e.request.method!=='GET')return;
-  const url=new URL(e.request.url);
-  if(url.origin===location.origin && (url.pathname.endsWith('/index.html')||url.pathname.endsWith('.js')||url.pathname.endsWith('/sw.js'))){
-    e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(C).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match(e.request)));
-  }else e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
-});
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const url=new URL(e.request.url);if(url.origin===location.origin&&(url.pathname.endsWith('/index.html')||url.pathname.endsWith('.js')||url.pathname.endsWith('/sw.js'))){e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(C).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match(e.request)))}else e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))});
